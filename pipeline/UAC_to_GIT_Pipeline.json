@@ -156,7 +156,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@activity('Tasks_Lookup').output.value.name",
+						"value": "@activity('Tasks_Lookup').output",
 						"type": "Expression"
 					},
 					"activities": [
@@ -179,7 +179,7 @@
 									"requestInterval": "00.00:00:00.010",
 									"requestMethod": "POST",
 									"requestBody": {
-										"value": "{\n    \"name\":@item()\n}",
+										"value": "{\n    \"name\":@item().value.name\n}",
 										"type": "Expression"
 									},
 									"additionalHeaders": {
