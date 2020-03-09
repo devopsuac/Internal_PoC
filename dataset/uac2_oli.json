@@ -1,0 +1,13 @@
+{
+	"name": "uac2_oli",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "devopsuac2_oli",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "RestResource",
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

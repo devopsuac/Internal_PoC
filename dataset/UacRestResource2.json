@@ -1,0 +1,16 @@
+{
+	"name": "UacRestResource2",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "UacRestService2",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "RestResource",
+		"typeProperties": {
+			"relativeUrl": ""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
