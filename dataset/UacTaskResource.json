@@ -15,7 +15,7 @@
 		"type": "RestResource",
 		"typeProperties": {
 			"relativeUrl": {
-				"value": "opswise/resources/task?taskname=dataset().taskname",
+				"value": "opswise/resources/task?taskname=@dataset().taskname",
 				"type": "Expression"
 			}
 		},
