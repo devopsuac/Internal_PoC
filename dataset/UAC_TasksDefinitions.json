@@ -1,0 +1,23 @@
+{
+	"name": "UAC_TasksDefinitions",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "UacDevopsBlobStorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"folderPath": "TasksDefinitions",
+				"container": "uacdevops"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}
