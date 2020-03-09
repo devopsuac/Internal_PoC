@@ -199,7 +199,10 @@
 									"referenceName": "UacTaskResource",
 									"type": "DatasetReference",
 									"parameters": {
-										"taskname": "@item.name"
+										"taskname": {
+											"value": "@item().name",
+											"type": "Expression"
+										}
 									}
 								}
 							],
