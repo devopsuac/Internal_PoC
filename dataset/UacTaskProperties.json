@@ -1,0 +1,19 @@
+{
+	"name": "UacTaskProperties",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "UacDevopsBlobStorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "TasksPropertiesLatest",
+				"folderPath": "TasksProperties",
+				"container": "uacdevops"
+			}
+		}
+	}
+}
