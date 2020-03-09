@@ -14,7 +14,10 @@
 		"annotations": [],
 		"type": "RestResource",
 		"typeProperties": {
-			"relativeUrl": "opswise/resources/task"
+			"relativeUrl": {
+				"value": "opswise/resources/task?taskname=dataset().taskname",
+				"type": "Expression"
+			}
 		},
 		"schema": []
 	}
