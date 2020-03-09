@@ -179,7 +179,7 @@
 									"requestInterval": "00.00:00:00.010",
 									"requestMethod": "POST",
 									"requestBody": {
-										"value": "{\n    \"name\":@item().name\n}",
+										"value": "{\n    \"name\":item().name\n}",
 										"type": "Expression"
 									},
 									"additionalHeaders": {
