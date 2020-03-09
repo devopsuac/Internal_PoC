@@ -5,10 +5,15 @@
 			"referenceName": "UacRestService2",
 			"type": "LinkedServiceReference"
 		},
+		"parameters": {
+			"taskname": {
+				"type": "string"
+			}
+		},
 		"annotations": [],
 		"type": "RestResource",
 		"typeProperties": {
-			"relativeUrl": "opswise/resources/task?taskname=@item.name"
+			"relativeUrl": "opswise/resources/task?taskname=@taskname"
 		},
 		"schema": []
 	}
