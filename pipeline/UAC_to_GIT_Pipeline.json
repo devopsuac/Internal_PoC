@@ -105,8 +105,8 @@
 				]
 			},
 			{
-				"name": "Get_Tasks_Metadata",
-				"type": "GetMetadata",
+				"name": "Tasks_Lookup",
+				"type": "Lookup",
 				"dependsOn": [
 					{
 						"activity": "Copy_Tasks_From_UAC",
@@ -124,93 +124,22 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": false,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
 					"dataset": {
 						"referenceName": "UAC_TasksDefinitions",
 						"type": "DatasetReference"
 					},
-					"fieldList": [
-						"itemName"
-					],
-					"storeSettings": {
-						"type": "AzureBlobStorageReadSettings",
-						"recursive": true
-					},
-					"formatSettings": {
-						"type": "DelimitedTextReadSettings",
-						"skipLineCount": 1
-					}
-				}
-			},
-			{
-				"name": "For_Each_Task",
-				"type": "ForEach",
-				"dependsOn": [
-					{
-						"activity": "Get_Tasks_Metadata",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"items": {
-						"value": "@activity('Get_Tasks_Metadata').output",
-						"type": "Expression"
-					},
-					"activities": [
-						{
-							"name": "Copy data1",
-							"type": "Copy",
-							"dependsOn": [],
-							"policy": {
-								"timeout": "7.00:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"source": {
-									"type": "RestSource",
-									"httpRequestTimeout": "00:01:40",
-									"requestInterval": "00.00:00:00.010",
-									"requestMethod": "POST",
-									"requestBody": {
-										"value": "{\n    \"taskanme\":@{item().name\n}",
-										"type": "Expression"
-									},
-									"additionalHeaders": {
-										"Content-Type": "application/json"
-									}
-								},
-								"sink": {
-									"type": "JsonSink",
-									"storeSettings": {
-										"type": "AzureBlobStorageWriteSettings"
-									},
-									"formatSettings": {
-										"type": "JsonWriteSettings",
-										"quoteAllText": true
-									}
-								},
-								"enableStaging": false
-							},
-							"inputs": [
-								{
-									"referenceName": "UacTaskResource",
-									"type": "DatasetReference"
-								}
-							],
-							"outputs": [
-								{
-									"referenceName": "UacTaskProperties",
-									"type": "DatasetReference"
-								}
-							]
-						}
-					]
+					"firstRowOnly": false
 				}
 			}
 		],
