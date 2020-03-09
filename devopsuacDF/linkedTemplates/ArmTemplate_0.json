@@ -292,6 +292,7 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobStorageLocation",
+						"fileName": "TaskDefinitionsLatest",
 						"folderPath": "TasksDefinitions",
 						"container": "uacdevops"
 					},
@@ -461,12 +462,13 @@
 							"sink": {
 								"type": "DelimitedTextSink",
 								"storeSettings": {
-									"type": "AzureBlobStorageWriteSettings"
+									"type": "AzureBlobStorageWriteSettings",
+									"copyBehavior": "PreserveHierarchy"
 								},
 								"formatSettings": {
 									"type": "DelimitedTextWriteSettings",
 									"quoteAllText": true,
-									"fileExtension": ".txt"
+									"fileExtension": ".csv"
 								}
 							},
 							"enableStaging": true,
@@ -474,7 +476,9 @@
 								"linkedServiceName": {
 									"referenceName": "UacDevopsBlobStorage",
 									"type": "LinkedServiceReference"
-								}
+								},
+								"path": "uacdevops/TasksDefinitions",
+								"enableCompression": true
 							},
 							"translator": {
 								"type": "TabularTranslator",
