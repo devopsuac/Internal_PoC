@@ -161,8 +161,8 @@
 					},
 					"activities": [
 						{
-							"name": "Web1",
-							"type": "WebActivity",
+							"name": "Copy data1",
+							"type": "Copy",
 							"dependsOn": [],
 							"policy": {
 								"timeout": "7.00:00:00",
@@ -173,27 +173,39 @@
 							},
 							"userProperties": [],
 							"typeProperties": {
-								"url": "http://uacdevops2ip.westeurope.cloudapp.azure.com:8080",
-								"method": "GET",
-								"linkedServices": [
-									{
-										"referenceName": "UacRestService2",
-										"type": "LinkedServiceReference"
+								"source": {
+									"type": "RestSource",
+									"httpRequestTimeout": "00:01:40",
+									"requestInterval": "00.00:00:00.010",
+									"requestMethod": "GET"
+								},
+								"sink": {
+									"type": "JsonSink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings"
+									},
+									"formatSettings": {
+										"type": "JsonWriteSettings",
+										"quoteAllText": true
 									}
-								],
-								"datasets": [
-									{
-										"referenceName": "UacTaskResource",
-										"type": "DatasetReference",
-										"parameters": {
-											"TaskName": {
-												"value": "@item().name",
-												"type": "Expression"
-											}
-										}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "UacTaskResource",
+									"type": "DatasetReference",
+									"parameters": {
+										"TaskName": "@item().name"
 									}
-								]
-							}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "UacTaskProperties",
+									"type": "DatasetReference"
+								}
+							]
 						}
 					]
 				}
