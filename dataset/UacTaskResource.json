@@ -13,7 +13,7 @@
 		"annotations": [],
 		"type": "RestResource",
 		"typeProperties": {
-			"relativeUrl": "opswise/resources/task?taskname=@taskname"
+			"relativeUrl": "opswise/resources/task"
 		},
 		"schema": []
 	}
