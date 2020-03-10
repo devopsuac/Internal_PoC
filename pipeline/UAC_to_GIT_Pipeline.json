@@ -252,7 +252,10 @@
 				"inputs": [
 					{
 						"referenceName": "BLOB_Task_Properties_Tmp",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"FileName": "FileName"
+						}
 					}
 				],
 				"outputs": [
