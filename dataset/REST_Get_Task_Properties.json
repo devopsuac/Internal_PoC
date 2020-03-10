@@ -1,5 +1,5 @@
 {
-	"name": "UacTaskResource",
+	"name": "REST_Get_Task_Properties",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "UacRestService2",
@@ -13,7 +13,10 @@
 		"annotations": [],
 		"type": "RestResource",
 		"typeProperties": {
-			"relativeUrl": "opswise/resources/task?taskname=@dataset().TaskName"
+			"relativeUrl": {
+				"value": "opswise/resources/task?taskname=@{dataset().TaskName}",
+				"type": "Expression"
+			}
 		},
 		"schema": []
 	}

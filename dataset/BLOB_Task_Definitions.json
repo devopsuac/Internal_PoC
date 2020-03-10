@@ -1,5 +1,5 @@
 {
-	"name": "UacTaskDefinitions",
+	"name": "BLOB_Task_Definitions",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "UacDevopsBlobStorage",
@@ -10,7 +10,8 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
-				"folderPath": "TaskDefinitionsTmp",
+				"fileName": "TaskDefinitions.json",
+				"folderPath": "TaskDefinitions",
 				"container": "uacdevops"
 			}
 		}

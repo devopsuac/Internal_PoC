@@ -1,5 +1,5 @@
 {
-	"name": "UacRestResource2",
+	"name": "REST_Get_Task_Definitions",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "UacRestService2",

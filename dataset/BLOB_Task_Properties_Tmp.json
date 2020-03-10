@@ -1,0 +1,38 @@
+{
+	"name": "BLOB_Task_Properties_Tmp",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "UacDevopsBlobStorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"folderPath": "TaskPropertiesTmp",
+				"container": "uacdevops"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"description": {
+					"type": "string"
+				},
+				"name": {
+					"type": "string"
+				},
+				"sysId": {
+					"type": "string"
+				},
+				"type": {
+					"type": "string"
+				},
+				"version": {
+					"type": "integer"
+				}
+			}
+		}
+	}
+}

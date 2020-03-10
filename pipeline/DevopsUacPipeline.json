@@ -38,7 +38,7 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "UacRestResource2",
+						"referenceName": "REST_Get_Task_Definitions",
 						"type": "DatasetReference"
 					}
 				],

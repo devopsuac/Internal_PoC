@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Copy_Tasks_From_UAC",
+				"name": "Copy_Task_Definitions",
 				"type": "Copy",
 				"dependsOn": [],
 				"policy": {
@@ -26,14 +26,14 @@
 						}
 					},
 					"sink": {
-						"type": "DelimitedTextSink",
+						"type": "JsonSink",
 						"storeSettings": {
 							"type": "AzureBlobStorageWriteSettings"
 						},
 						"formatSettings": {
-							"type": "DelimitedTextWriteSettings",
+							"type": "JsonWriteSettings",
 							"quoteAllText": true,
-							"fileExtension": ".csv"
+							"filePattern": "arrayOfObjects"
 						}
 					},
 					"enableStaging": true,
@@ -93,13 +93,13 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "UacRestResource2",
+						"referenceName": "REST_Get_Task_Definitions",
 						"type": "DatasetReference"
 					}
 				],
 				"outputs": [
 					{
-						"referenceName": "UAC_TasksDefinitions",
+						"referenceName": "BLOB_Task_Definitions",
 						"type": "DatasetReference"
 					}
 				]
@@ -109,7 +109,7 @@
 				"type": "Lookup",
 				"dependsOn": [
 					{
-						"activity": "Copy_Tasks_From_UAC",
+						"activity": "Copy_Task_Definitions",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -125,18 +125,14 @@
 				"userProperties": [],
 				"typeProperties": {
 					"source": {
-						"type": "DelimitedTextSource",
+						"type": "JsonSource",
 						"storeSettings": {
 							"type": "AzureBlobStorageReadSettings",
-							"recursive": false,
-							"enablePartitionDiscovery": false
-						},
-						"formatSettings": {
-							"type": "DelimitedTextReadSettings"
+							"recursive": true
 						}
 					},
 					"dataset": {
-						"referenceName": "UAC_TasksDefinitions",
+						"referenceName": "BLOB_Task_Definitions",
 						"type": "DatasetReference"
 					},
 					"firstRowOnly": false
@@ -161,7 +157,7 @@
 					},
 					"activities": [
 						{
-							"name": "Copy data1",
+							"name": "Copy_Task_Properties",
 							"type": "Copy",
 							"dependsOn": [],
 							"policy": {
@@ -193,7 +189,7 @@
 							},
 							"inputs": [
 								{
-									"referenceName": "UacTaskResource",
+									"referenceName": "REST_Get_Task_Properties",
 									"type": "DatasetReference",
 									"parameters": {
 										"TaskName": "@item().name"
@@ -202,15 +198,108 @@
 							],
 							"outputs": [
 								{
-									"referenceName": "UacTaskProperties",
+									"referenceName": "BLOB_Task_Properties_Tmp",
 									"type": "DatasetReference"
 								}
 							]
 						}
 					]
 				}
+			},
+			{
+				"name": "Merge_Task_Properties_Files",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "For_Each_Task",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"wildcardFileName": "*.json",
+							"enablePartitionDiscovery": false
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings",
+							"copyBehavior": "MergeFiles"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings",
+							"quoteAllText": true,
+							"filePattern": "arrayOfObjects"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "BLOB_Task_Properties_Tmp",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "BLOB_Task_Properties",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Remove_Temporary_Directory",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "Merge_Task_Properties_Files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "BLOB_Task_Properties_Tmp",
+						"type": "DatasetReference"
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
+						"wildcardFileName": "*.json"
+					}
+				}
 			}
 		],
+		"variables": {
+			"TaskDefinitions": {
+				"type": "String"
+			}
+		},
 		"annotations": []
 	}
 }
