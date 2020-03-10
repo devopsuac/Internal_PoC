@@ -10,7 +10,7 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
-				"folderPath": "TaskPropertiesTmp",
+				"folderPath": "TaskProperties",
 				"container": "uacdevops"
 			}
 		},
