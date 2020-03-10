@@ -13,6 +13,17 @@ steps:
 
 # Start with a minimal pipeline that you can customize to build and deploy your code.
 - task: AzureCLI@2
+  displayName: Azure CLI version
+  inputs:
+    azureSubscription: <Name of the Azure Resource Manager service connection>
+    scriptType: ps
+    scriptLocation: inlineScript
+    inlineScript: |
+        az --version
+        az account show
+
+- task: AzureCLI@2
+  displayName: Azure CLI storage
   inputs:
     azureSubscription: 'devops1'
     scriptType: 'pscore'
