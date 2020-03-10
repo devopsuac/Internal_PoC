@@ -15,8 +15,8 @@ steps:
 - task: AzureCLI@2
   displayName: Azure CLI version
   inputs:
-    azureSubscription: <Name of the Azure Resource Manager service connection>
-    scriptType: ps
+    azureSubscription: 'devops1'
+    scriptType: pscore
     scriptLocation: inlineScript
     inlineScript: |
         az --version
@@ -30,6 +30,7 @@ steps:
     scriptLocation: 'inlineScript'
     inlineScript: 'az storage blob upload-batch —-account-name stonebrancheurgdiag364 --account-key tL/I3bSPSyNfWz312rU+w6AQy868SLIhWh8iZxpRpCA+nJW0rDlugfp2veyJMiAsgQWVLNu6DIEmSPzyqcVfMA== —-destination oli —-source ./'
     failOnStandardError: true
+
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
