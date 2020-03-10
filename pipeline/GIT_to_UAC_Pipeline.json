@@ -3,8 +3,8 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Get Metadata1",
-				"type": "GetMetadata",
+				"name": "Lookup_Task_Properties_Directory",
+				"type": "Lookup",
 				"dependsOn": [],
 				"policy": {
 					"timeout": "7.00:00:00",
@@ -15,21 +15,183 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": false,
+							"wildcardFileName": "*.json",
+							"enablePartitionDiscovery": false
+						}
+					},
 					"dataset": {
-						"referenceName": "BLOB_Task_Properties",
+						"referenceName": "BLOB_Task_Properties_Tmp",
 						"type": "DatasetReference"
 					},
-					"fieldList": [
-						"itemName",
-						"lastModified"
-					],
-					"storeSettings": {
-						"type": "AzureBlobStorageReadSettings",
-						"recursive": true
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "For_Each_Task_Property_File",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup_Task_Properties_Directory",
+						"dependencyConditions": [
+							"Succeeded"
+						]
 					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup_Task_Properties_Directory').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Get_Task_Property_File_Metadata",
+							"type": "GetMetadata",
+							"dependsOn": [
+								{
+									"activity": "Set_Task_name",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "BLOB_Task_Properties",
+									"type": "DatasetReference",
+									"parameters": {
+										"FileName": {
+											"value": "@replace(item().name, ' ', '')",
+											"type": "Expression"
+										}
+									}
+								},
+								"fieldList": [
+									"itemName",
+									"lastModified"
+								],
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true
+								}
+							}
+						},
+						{
+							"name": "If_New_Changes",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "Get_Task_Property_File_Metadata",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@less(activity('Get_Task_Property_File_Metadata').output.lastModified, getPastTime(1, 'Minute'))",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "Set_Request_Body",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "Get_Task_Properties",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "RequestBody",
+											"value": {
+												"value": "@activity('Get_Task_Properties').output.value",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "Get_Task_Properties",
+										"type": "Lookup",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "JsonSource",
+												"storeSettings": {
+													"type": "AzureBlobStorageReadSettings",
+													"recursive": true
+												}
+											},
+											"dataset": {
+												"referenceName": "BLOB_Task_Properties",
+												"type": "DatasetReference",
+												"parameters": {
+													"FileName": {
+														"value": "@replace(variables('TaskName'), ' ', '')",
+														"type": "Expression"
+													}
+												}
+											},
+											"firstRowOnly": false
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "Set_Task_name",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "TaskName",
+								"value": {
+									"value": "@item().name",
+									"type": "Expression"
+								}
+							}
+						}
+					]
 				}
 			}
 		],
+		"variables": {
+			"TaskName": {
+				"type": "String"
+			},
+			"BaseUrl": {
+				"type": "String",
+				"defaultValue": "http://uacdevops2ip.westeurope.cloudapp.azure.com:8080"
+			},
+			"RequestBody": {
+				"type": "Array"
+			}
+		},
 		"annotations": []
 	}
 }

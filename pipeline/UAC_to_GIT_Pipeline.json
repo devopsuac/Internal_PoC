@@ -236,7 +236,7 @@
 						"type": "JsonSource",
 						"storeSettings": {
 							"type": "AzureBlobStorageReadSettings",
-							"recursive": true,
+							"recursive": false,
 							"wildcardFileName": "*.json",
 							"enablePartitionDiscovery": false
 						}
@@ -263,10 +263,10 @@
 				],
 				"outputs": [
 					{
-						"referenceName": "BLOB_Task_Properties",
+						"referenceName": "BLOB_Task_Properties_Merged",
 						"type": "DatasetReference",
 						"parameters": {
-							"FileName": "TaskProperties"
+							"FileName": "TaskProperties.json"
 						}
 					}
 				]
