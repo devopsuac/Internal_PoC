@@ -1,0 +1,34 @@
+{
+	"name": "Merge_Task_Definitions_and_Properties",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "BLOB_Task_Definitions",
+						"type": "DatasetReference"
+					},
+					"name": "TaskDefinitions"
+				},
+				{
+					"dataset": {
+						"referenceName": "BLOB_Task_Properties",
+						"type": "DatasetReference"
+					},
+					"name": "TaskProperties"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "Join1"
+				},
+				{
+					"name": "Join2"
+				}
+			],
+			"script": "source(output(\n\t\tdescription as string,\n\t\tname as string,\n\t\tsysId as string,\n\t\ttype as string,\n\t\tversion as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> TaskDefinitions\nsource(output(\n\t\ttype as string,\n\t\tactions as (abortActions as string[], emailNotifications as string[], setVariableActions as string[], snmpNotifications as string[], systemOperations as string[]),\n\t\tcpDuration as string,\n\t\tcpDurationUnit as string,\n\t\tcustomField1 as (label as string, value as string),\n\t\tcustomField2 as (label as string, value as string),\n\t\tefDayConstraint as string,\n\t\tefDuration as string,\n\t\tefEnabled as boolean,\n\t\tefNthAmount as string,\n\t\tefTime as string,\n\t\tefType as string,\n\t\texclusiveTasks as string[],\n\t\texecutionRestriction as string,\n\t\tholdResources as boolean,\n\t\tlfDayConstraint as string,\n\t\tlfDuration as string,\n\t\tlfEnabled as boolean,\n\t\tlfNthAmount as string,\n\t\tlfTime as string,\n\t\tlfType as string,\n\t\tlsDayConstraint as string,\n\t\tlsDuration as string,\n\t\tlsEnabled as boolean,\n\t\tlsNthAmount as string,\n\t\tlsTime as string,\n\t\tlsType as string,\n\t\tname as string,\n\t\tnotes as string[],\n\t\topswiseGroups as string[],\n\t\tresPriority as string,\n\t\tresolveNameImmediately as boolean,\n\t\trestrictionPeriod as string,\n\t\trestrictionPeriodAfterDate as string,\n\t\trestrictionPeriodAfterTime as string,\n\t\trestrictionPeriodBeforeDate as string,\n\t\trestrictionPeriodBeforeTime as string,\n\t\trestrictionPeriodDateList as string[],\n\t\tretainSysIds as boolean,\n\t\tsleepAmount as string,\n\t\tsleepDayConstraint as string,\n\t\tsleepDuration as string,\n\t\tsleepTime as string,\n\t\tsleepType as string,\n\t\tstartHeld as boolean,\n\t\tstartHeldReason as string,\n\t\tsummary as string,\n\t\tsysId as string,\n\t\ttimeZonePref as string,\n\t\tuserEstimatedDuration as string,\n\t\tvariables as string[],\n\t\tversion as string,\n\t\tvirtualResources as string[]\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> TaskProperties\nJoin2 join(joinType:'inner',\n\tbroadcast: 'none')~> Join1\nTaskDefinitions join(joinType:'inner',\n\tbroadcast: 'none')~> Join2"
+		}
+	}
+}

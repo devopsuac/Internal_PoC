@@ -14,6 +14,26 @@
 				"folderPath": "TaskDefinitions",
 				"container": "uacdevops"
 			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"description": {
+					"type": "string"
+				},
+				"name": {
+					"type": "string"
+				},
+				"sysId": {
+					"type": "string"
+				},
+				"type": {
+					"type": "string"
+				},
+				"version": {
+					"type": "integer"
+				}
+			}
 		}
 	}
 }
