@@ -15,7 +15,7 @@ steps:
 - task: AzureCLI@2
   inputs:
     azureSubscription: 'devops1'
-    scriptType: 'ps'
+    scriptType: 'pscore'
     scriptLocation: 'inlineScript'
     inlineScript: 'az storage blob upload-batch —-account-name stonebrancheurgdiag364 --account-key tL/I3bSPSyNfWz312rU+w6AQy868SLIhWh8iZxpRpCA+nJW0rDlugfp2veyJMiAsgQWVLNu6DIEmSPzyqcVfMA== —-destination oli —-source ./'
     failOnStandardError: true
