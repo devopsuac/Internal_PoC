@@ -1,4 +1,10 @@
 # Starter pipeline
+- task: AzureCLI@2
+  inputs:
+    azureSubscription: 'devops1'
+    scriptType: 'ps'
+    scriptLocation: 'inlineScript'
+    inlineScript: 'az storage blob upload-batch — account-name stonebrancheurgdiag364 account-key tL/I3bSPSyNfWz312rU+w6AQy868SLIhWh8iZxpRpCA+nJW0rDlugfp2veyJMiAsgQWVLNu6DIEmSPzyqcVfMA== — destination ''oli'' — source ./'
 # Start with a minimal pipeline that you can customize to build and deploy your code.
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
