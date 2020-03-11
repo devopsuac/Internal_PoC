@@ -1,0 +1,16 @@
+{
+	"name": "REST_Get_Task_Definitions",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "UacRestService2",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "RestResource",
+		"typeProperties": {
+			"relativeUrl": "opswise/resources/task/list"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

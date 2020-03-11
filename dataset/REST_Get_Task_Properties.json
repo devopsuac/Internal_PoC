@@ -1,0 +1,23 @@
+{
+	"name": "REST_Get_Task_Properties",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "UacRestService2",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"TaskName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "RestResource",
+		"typeProperties": {
+			"relativeUrl": {
+				"value": "opswise/resources/task?taskname=@{dataset().TaskName}",
+				"type": "Expression"
+			}
+		},
+		"schema": []
+	}
+}

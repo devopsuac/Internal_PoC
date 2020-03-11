@@ -1,0 +1,269 @@
+{
+	"name": "UAC_to_GIT_Pipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy_Task_Definitions",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "POST",
+						"requestBody": "{\n    \"name\":\"*\"\n}",
+						"additionalHeaders": {
+							"Content-Type": "application/json"
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings",
+							"quoteAllText": true,
+							"filePattern": "arrayOfObjects"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "$['description']"
+								},
+								"sink": {
+									"name": "description"
+								}
+							},
+							{
+								"source": {
+									"path": "$['name']"
+								},
+								"sink": {
+									"name": "name"
+								}
+							},
+							{
+								"source": {
+									"path": "$['sysId']"
+								},
+								"sink": {
+									"name": "sysId"
+								}
+							},
+							{
+								"source": {
+									"path": "$['type']"
+								},
+								"sink": {
+									"name": "type"
+								}
+							},
+							{
+								"source": {
+									"path": "$['version']"
+								},
+								"sink": {
+									"name": "version"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "REST_Get_Task_Definitions",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "BLOB_Task_Definitions",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Tasks_Lookup",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Copy_Task_Definitions",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true
+						}
+					},
+					"dataset": {
+						"referenceName": "BLOB_Task_Definitions",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "For_Each_Task",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Tasks_Lookup",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Tasks_Lookup').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Copy_Task_Properties",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "RestSource",
+									"httpRequestTimeout": "00:01:40",
+									"requestInterval": "00.00:00:00.010",
+									"requestMethod": "GET"
+								},
+								"sink": {
+									"type": "JsonSink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings"
+									},
+									"formatSettings": {
+										"type": "JsonWriteSettings",
+										"quoteAllText": true
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "REST_Get_Task_Properties",
+									"type": "DatasetReference",
+									"parameters": {
+										"TaskName": "@item().name"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "BLOB_Task_Properties",
+									"type": "DatasetReference",
+									"parameters": {
+										"FileName": {
+											"value": "@replace(item().name, ' ', '')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "Merge_Task_Properties_Files",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "For_Each_Task",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": false,
+							"wildcardFileName": "*.json",
+							"enablePartitionDiscovery": false
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings",
+							"copyBehavior": "MergeFiles"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings",
+							"quoteAllText": true,
+							"filePattern": "arrayOfObjects"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "BLOB_Task_Properties_Tmp",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "BLOB_Task_Properties_Merged",
+						"type": "DatasetReference",
+						"parameters": {
+							"FileName": "TaskProperties.json"
+						}
+					}
+				]
+			}
+		],
+		"annotations": []
+	}
+}
