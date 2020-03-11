@@ -8,15 +8,14 @@ pool:
   vmImage: 'windows-latest'
 
 # Start with a minimal pipeline that you can customize to build and deploy your code.
+steps:
 - task: AzureCLI@2
   displayName: Azure CLI version
   inputs:
     azureSubscription: 'devops1'
     scriptType: pscore
     scriptLocation: inlineScript
-    inlineScript: |
-        az --version
-#        az account show
+    inlineScript: 'az --version'
 
 - task: AzureCLI@2
   displayName: Azure CLI storage
