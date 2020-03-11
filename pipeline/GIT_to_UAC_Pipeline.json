@@ -48,6 +48,7 @@
 						"value": "@activity('Lookup_Task_Properties_Directory').output.value",
 						"type": "Expression"
 					},
+					"isSequential": true,
 					"activities": [
 						{
 							"name": "Get_Task_Property_File_Metadata",
@@ -90,7 +91,7 @@
 							}
 						},
 						{
-							"name": "If_New_Changes",
+							"name": "If_Not_New_Changes",
 							"type": "IfCondition",
 							"dependsOn": [
 								{
@@ -103,7 +104,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"expression": {
-									"value": "@less(activity('Get_Task_Property_File_Metadata').output.lastModified, getPastTime(1, 'Minute'))",
+									"value": "@less(activity('Get_Task_Property_File_Metadata').output.lastModified, getPastTime(3, 'Minute'))",
 									"type": "Expression"
 								},
 								"ifFalseActivities": [
@@ -159,6 +160,148 @@
 											},
 											"firstRowOnly": false
 										}
+									},
+									{
+										"name": "Create_New_Task_Version",
+										"type": "WebActivity",
+										"dependsOn": [
+											{
+												"activity": "Check_Task_Existence",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"url": {
+												"value": "@variables('Url')",
+												"type": "Expression"
+											},
+											"method": "PUT",
+											"headers": {
+												"Content-Type": "application/json"
+											},
+											"body": {
+												"value": "@string(variables('RequestBody')[0])",
+												"type": "Expression"
+											},
+											"linkedServices": [
+												{
+													"referenceName": "UacRestService2",
+													"type": "LinkedServiceReference"
+												}
+											],
+											"datasets": [],
+											"authentication": {
+												"type": "Basic",
+												"username": "ops.admin",
+												"password": {
+													"type": "AzureKeyVaultSecret",
+													"store": {
+														"referenceName": "AzureKeyVault1",
+														"type": "LinkedServiceReference"
+													},
+													"secretName": "devopsuac"
+												}
+											}
+										}
+									},
+									{
+										"name": "Create_New_Task",
+										"type": "WebActivity",
+										"dependsOn": [
+											{
+												"activity": "Check_Task_Existence",
+												"dependencyConditions": [
+													"Failed"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"url": {
+												"value": "@variables('Url')",
+												"type": "Expression"
+											},
+											"method": "POST",
+											"body": {
+												"value": "@string(variables('RequestBody')[0])",
+												"type": "Expression"
+											},
+											"linkedServices": [],
+											"datasets": [],
+											"authentication": {
+												"type": "Basic",
+												"username": "ops.admin",
+												"password": {
+													"type": "AzureKeyVaultSecret",
+													"store": {
+														"referenceName": "AzureKeyVault1",
+														"type": "LinkedServiceReference"
+													},
+													"secretName": "devopsuac"
+												}
+											}
+										}
+									},
+									{
+										"name": "Check_Task_Existence",
+										"type": "WebActivity",
+										"dependsOn": [
+											{
+												"activity": "Set_Request_Body",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"url": {
+												"value": "@concat(variables('GetURI'),variables('TaskName'))",
+												"type": "Expression"
+											},
+											"method": "GET",
+											"headers": {
+												"Content-Type": "application/json"
+											},
+											"linkedServices": [],
+											"datasets": [],
+											"authentication": {
+												"type": "Basic",
+												"username": "ops.admin",
+												"password": {
+													"type": "AzureKeyVaultSecret",
+													"store": {
+														"referenceName": "AzureKeyVault1",
+														"type": "LinkedServiceReference"
+													},
+													"secretName": "devopsuac"
+												}
+											}
+										}
 									}
 								]
 							}
@@ -184,12 +327,16 @@
 			"TaskName": {
 				"type": "String"
 			},
-			"BaseUrl": {
+			"Url": {
 				"type": "String",
-				"defaultValue": "http://uacdevops2ip.westeurope.cloudapp.azure.com:8080"
+				"defaultValue": "http://uacdevops2ip.westeurope.cloudapp.azure.com:8080/opswise/resources/task"
 			},
 			"RequestBody": {
 				"type": "Array"
+			},
+			"GetURI": {
+				"type": "String",
+				"defaultValue": "http://uacdevops2ip.westeurope.cloudapp.azure.com:8080/opswise/resources/task?taskname="
 			}
 		},
 		"annotations": []
