@@ -28,7 +28,8 @@ steps:
     azureSubscription: 'devops1'
     scriptType: 'pscore'
     scriptLocation: 'inlineScript'
-    inlineScript: 'az storage blob upload-batch —-account-name stonebrancheurgdiag364 --account-key tL/I3bSPSyNfWz312rU+w6AQy868SLIhWh8iZxpRpCA+nJW0rDlugfp2veyJMiAsgQWVLNu6DIEmSPzyqcVfMA== —-destination oli —-source ./'
+#    inlineScript: 'az storage blob upload-batch —-account-name stonebrancheurgdiag364 --account-key tL/I3bSPSyNfWz312rU+w6AQy868SLIhWh8iZxpRpCA+nJW0rDlugfp2veyJMiAsgQWVLNu6DIEmSPzyqcVfMA== —-destination oli —-source ./'
+     inlineScript: ''az storage blob upload-batch --dryrun  --connection-string 'DefaultEndpointsProtocol=https;AccountName=stonebrancheurgdiag364;AccountKey=tL/I3bSPSyNfWz312rU+w6AQy868SLIhWh8iZxpRpCA+nJW0rDlugfp2veyJMiAsgQWVLNu6DIEmSPzyqcVfMA==;EndpointSuffix=core.windows.net' —-destination oli —-source ./'
     failOnStandardError: true
 
 # Add steps that build, run tests, deploy, and more:
