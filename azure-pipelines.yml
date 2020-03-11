@@ -10,14 +10,6 @@ pool:
 # Start with a minimal pipeline that you can customize to build and deploy your code.
 steps:
 - task: AzureCLI@2
-  displayName: Azure CLI version
-  inputs:
-    azureSubscription: 'devops1'
-    scriptType: pscore
-    scriptLocation: inlineScript
-    inlineScript: 'az --version'
-
-- task: AzureCLI@2
   displayName: Azure CLI storage
   inputs:
     azureSubscription: 'devops1'
@@ -27,6 +19,14 @@ steps:
     inlineScript: 'az storage blob upload-batch --dryrun  --connection-string $(AZURE_STORAGE_CONNECTION_STRING) —-destination oli —-source ./'
     failOnStandardError: true
 
+- task: AzureCLI@2
+  displayName: Azure CLI version
+  inputs:
+    azureSubscription: 'devops1'
+    scriptType: pscore
+    scriptLocation: 'inlineScript'
+    inlineScript: 'az --version'
+    
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
