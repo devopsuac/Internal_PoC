@@ -36,15 +36,7 @@
 							"filePattern": "arrayOfObjects"
 						}
 					},
-					"enableStaging": true,
-					"stagingSettings": {
-						"linkedServiceName": {
-							"referenceName": "UacDevopsBlobStorage",
-							"type": "LinkedServiceReference"
-						},
-						"path": "uacdevops/TasksDefinitions",
-						"enableCompression": true
-					},
+					"enableStaging": false,
 					"translator": {
 						"type": "TabularTranslator",
 						"mappings": [
