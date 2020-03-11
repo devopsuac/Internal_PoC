@@ -7,10 +7,6 @@ trigger:
 pool:
   vmImage: 'windows-latest'
 
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
-
 # Start with a minimal pipeline that you can customize to build and deploy your code.
 - task: AzureCLI@2
   displayName: Azure CLI version
@@ -20,7 +16,7 @@ steps:
     scriptLocation: inlineScript
     inlineScript: |
         az --version
-        az account show
+#        az account show
 
 - task: AzureCLI@2
   displayName: Azure CLI storage
