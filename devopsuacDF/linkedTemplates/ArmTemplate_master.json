@@ -23,6 +23,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'FileServer1'"
 		},
+		"HttpServer1_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'HttpServer1'"
+		},
 		"UacDevopsBlobStorage_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'UacDevopsBlobStorage'"
@@ -47,6 +51,14 @@
 			"type": "string",
 			"defaultValue": "fotis.drakos"
 		},
+		"HttpServer1_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "http://uacdevops2ip.westeurope.cloudapp.azure.com:8080"
+		},
+		"HttpServer1_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "ops.admin"
+		},
 		"UacRestService2_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "http://uacdevops2ip.westeurope.cloudapp.azure.com:8080"
@@ -62,6 +74,10 @@
 		"devopsuac2_oli_properties_typeProperties_userName": {
 			"type": "string",
 			"defaultValue": "ops.admin"
+		},
+		"AzureKeyVault1_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://devopsuacKC.vault.azure.net/"
 		},
 		"containerUri": {
 			"type": "string",
@@ -102,6 +118,9 @@
 					"FileServer1_password": {
 						"value": "[parameters('FileServer1_password')]"
 					},
+					"HttpServer1_password": {
+						"value": "[parameters('HttpServer1_password')]"
+					},
 					"UacDevopsBlobStorage_connectionString": {
 						"value": "[parameters('UacDevopsBlobStorage_connectionString')]"
 					},
@@ -120,6 +139,12 @@
 					"FileServer1_properties_typeProperties_userId": {
 						"value": "[parameters('FileServer1_properties_typeProperties_userId')]"
 					},
+					"HttpServer1_properties_typeProperties_url": {
+						"value": "[parameters('HttpServer1_properties_typeProperties_url')]"
+					},
+					"HttpServer1_properties_typeProperties_userName": {
+						"value": "[parameters('HttpServer1_properties_typeProperties_userName')]"
+					},
 					"UacRestService2_properties_typeProperties_url": {
 						"value": "[parameters('UacRestService2_properties_typeProperties_url')]"
 					},
@@ -131,10 +156,33 @@
 					},
 					"devopsuac2_oli_properties_typeProperties_userName": {
 						"value": "[parameters('devopsuac2_oli_properties_typeProperties_userName')]"
+					},
+					"AzureKeyVault1_properties_typeProperties_baseUrl": {
+						"value": "[parameters('AzureKeyVault1_properties_typeProperties_baseUrl')]"
 					}
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "ArmTemplate_1",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_1.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'ArmTemplate_0')]"
+			]
 		}
 	]
 }

@@ -17,6 +17,9 @@
 		"FileServer1_password": {
 			"value": ""
 		},
+		"HttpServer1_password": {
+			"value": ""
+		},
 		"UacDevopsBlobStorage_connectionString": {
 			"value": ""
 		},
@@ -35,6 +38,12 @@
 		"FileServer1_properties_typeProperties_userId": {
 			"value": "fotis.drakos"
 		},
+		"HttpServer1_properties_typeProperties_url": {
+			"value": "http://uacdevops2ip.westeurope.cloudapp.azure.com:8080"
+		},
+		"HttpServer1_properties_typeProperties_userName": {
+			"value": "ops.admin"
+		},
 		"UacRestService2_properties_typeProperties_url": {
 			"value": "http://uacdevops2ip.westeurope.cloudapp.azure.com:8080"
 		},
@@ -46,6 +55,9 @@
 		},
 		"devopsuac2_oli_properties_typeProperties_userName": {
 			"value": "ops.admin"
+		},
+		"AzureKeyVault1_properties_typeProperties_baseUrl": {
+			"value": "https://devopsuacKC.vault.azure.net/"
 		}
 	}
 }

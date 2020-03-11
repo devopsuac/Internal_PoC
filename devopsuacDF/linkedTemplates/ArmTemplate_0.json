@@ -23,6 +23,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'FileServer1'"
 		},
+		"HttpServer1_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'HttpServer1'"
+		},
 		"UacDevopsBlobStorage_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'UacDevopsBlobStorage'"
@@ -47,6 +51,14 @@
 			"type": "string",
 			"defaultValue": "fotis.drakos"
 		},
+		"HttpServer1_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "http://uacdevops2ip.westeurope.cloudapp.azure.com:8080"
+		},
+		"HttpServer1_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "ops.admin"
+		},
 		"UacRestService2_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "http://uacdevops2ip.westeurope.cloudapp.azure.com:8080"
@@ -62,6 +74,10 @@
 		"devopsuac2_oli_properties_typeProperties_userName": {
 			"type": "string",
 			"defaultValue": "ops.admin"
+		},
+		"AzureKeyVault1_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://devopsuacKC.vault.azure.net/"
 		}
 	},
 	"variables": {
@@ -120,6 +136,26 @@
 					"password": {
 						"type": "SecureString",
 						"value": "[parameters('FileServer1_password')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/HttpServer1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "HttpServer",
+				"typeProperties": {
+					"url": "[parameters('HttpServer1_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Basic",
+					"userName": "[parameters('HttpServer1_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('HttpServer1_password')]"
 					}
 				}
 			},
@@ -193,6 +229,569 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/AzureKeyVault1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureKeyVault",
+				"typeProperties": {
+					"baseUrl": "[parameters('AzureKeyVault1_properties_typeProperties_baseUrl')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/BLOB_Task_Definitions')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "UacDevopsBlobStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "TaskDefinitions.json",
+						"folderPath": "TaskDefinitions",
+						"container": "uacdevops"
+					}
+				},
+				"schema": {
+					"type": "object",
+					"properties": {
+						"description": {
+							"type": "string"
+						},
+						"name": {
+							"type": "string"
+						},
+						"sysId": {
+							"type": "string"
+						},
+						"type": {
+							"type": "string"
+						},
+						"version": {
+							"type": "integer"
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/UacDevopsBlobStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/BLOB_Task_Properties')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "UacDevopsBlobStorage",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"FileName": {
+						"type": "string",
+						"defaultValue": "FileName"
+					}
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@{dataset().FileName}.json",
+							"type": "Expression"
+						},
+						"folderPath": "TaskProperties",
+						"container": "uacdevops"
+					}
+				},
+				"schema": {
+					"type": "object",
+					"properties": {
+						"type": {
+							"type": "string"
+						},
+						"actions": {
+							"type": "object",
+							"properties": {
+								"abortActions": {
+									"type": "array"
+								},
+								"emailNotifications": {
+									"type": "array"
+								},
+								"setVariableActions": {
+									"type": "array"
+								},
+								"snmpNotifications": {
+									"type": "array"
+								},
+								"systemOperations": {
+									"type": "array"
+								}
+							}
+						},
+						"cpDuration": {
+							"type": "null"
+						},
+						"cpDurationUnit": {
+							"type": "string"
+						},
+						"customField1": {
+							"type": "object",
+							"properties": {
+								"label": {
+									"type": "null"
+								},
+								"value": {
+									"type": "null"
+								}
+							}
+						},
+						"customField2": {
+							"type": "object",
+							"properties": {
+								"label": {
+									"type": "null"
+								},
+								"value": {
+									"type": "null"
+								}
+							}
+						},
+						"efDayConstraint": {
+							"type": "string"
+						},
+						"efDuration": {
+							"type": "string"
+						},
+						"efEnabled": {
+							"type": "boolean"
+						},
+						"efNthAmount": {
+							"type": "integer"
+						},
+						"efTime": {
+							"type": "string"
+						},
+						"efType": {
+							"type": "string"
+						},
+						"exclusiveTasks": {
+							"type": "array"
+						},
+						"executionRestriction": {
+							"type": "string"
+						},
+						"holdResources": {
+							"type": "boolean"
+						},
+						"lfDayConstraint": {
+							"type": "string"
+						},
+						"lfDuration": {
+							"type": "string"
+						},
+						"lfEnabled": {
+							"type": "boolean"
+						},
+						"lfNthAmount": {
+							"type": "integer"
+						},
+						"lfTime": {
+							"type": "string"
+						},
+						"lfType": {
+							"type": "string"
+						},
+						"lsDayConstraint": {
+							"type": "string"
+						},
+						"lsDuration": {
+							"type": "string"
+						},
+						"lsEnabled": {
+							"type": "boolean"
+						},
+						"lsNthAmount": {
+							"type": "integer"
+						},
+						"lsTime": {
+							"type": "string"
+						},
+						"lsType": {
+							"type": "string"
+						},
+						"name": {
+							"type": "string"
+						},
+						"notes": {
+							"type": "array"
+						},
+						"opswiseGroups": {
+							"type": "array"
+						},
+						"resPriority": {
+							"type": "integer"
+						},
+						"resolveNameImmediately": {
+							"type": "boolean"
+						},
+						"restrictionPeriod": {
+							"type": "string"
+						},
+						"restrictionPeriodAfterDate": {
+							"type": "null"
+						},
+						"restrictionPeriodAfterTime": {
+							"type": "null"
+						},
+						"restrictionPeriodBeforeDate": {
+							"type": "null"
+						},
+						"restrictionPeriodBeforeTime": {
+							"type": "null"
+						},
+						"restrictionPeriodDateList": {
+							"type": "array"
+						},
+						"retainSysIds": {
+							"type": "boolean"
+						},
+						"sleepAmount": {
+							"type": "string"
+						},
+						"sleepDayConstraint": {
+							"type": "string"
+						},
+						"sleepDuration": {
+							"type": "string"
+						},
+						"sleepTime": {
+							"type": "string"
+						},
+						"sleepType": {
+							"type": "string"
+						},
+						"startHeld": {
+							"type": "boolean"
+						},
+						"startHeldReason": {
+							"type": "null"
+						},
+						"summary": {
+							"type": "string"
+						},
+						"sysId": {
+							"type": "string"
+						},
+						"timeZonePref": {
+							"type": "string"
+						},
+						"userEstimatedDuration": {
+							"type": "null"
+						},
+						"variables": {
+							"type": "array"
+						},
+						"version": {
+							"type": "integer"
+						},
+						"virtualResources": {
+							"type": "array"
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/UacDevopsBlobStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/BLOB_Task_Properties_Merged')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "UacDevopsBlobStorage",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"FileName": {
+						"type": "string",
+						"defaultValue": "FileName"
+					}
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().FileName",
+							"type": "Expression"
+						},
+						"folderPath": "TaskProperties/Merged",
+						"container": "uacdevops"
+					}
+				},
+				"schema": {
+					"type": "object",
+					"properties": {
+						"description": {
+							"type": "string"
+						},
+						"name": {
+							"type": "string"
+						},
+						"sysId": {
+							"type": "string"
+						},
+						"type": {
+							"type": "string"
+						},
+						"version": {
+							"type": "integer"
+						},
+						"actions": {
+							"type": "object",
+							"properties": {
+								"abortActions": {
+									"type": "array"
+								},
+								"emailNotifications": {
+									"type": "array"
+								},
+								"setVariableActions": {
+									"type": "array"
+								},
+								"snmpNotifications": {
+									"type": "array"
+								},
+								"systemOperations": {
+									"type": "array"
+								}
+							}
+						},
+						"cpDuration": {
+							"type": "null"
+						},
+						"cpDurationUnit": {
+							"type": "string"
+						},
+						"customField1": {
+							"type": "object",
+							"properties": {
+								"label": {
+									"type": "null"
+								},
+								"value": {
+									"type": "null"
+								}
+							}
+						},
+						"customField2": {
+							"type": "object",
+							"properties": {
+								"label": {
+									"type": "null"
+								},
+								"value": {
+									"type": "null"
+								}
+							}
+						},
+						"efDayConstraint": {
+							"type": "string"
+						},
+						"efDuration": {
+							"type": "string"
+						},
+						"efEnabled": {
+							"type": "boolean"
+						},
+						"efNthAmount": {
+							"type": "integer"
+						},
+						"efTime": {
+							"type": "string"
+						},
+						"efType": {
+							"type": "string"
+						},
+						"exclusiveTasks": {
+							"type": "array"
+						},
+						"executionRestriction": {
+							"type": "string"
+						},
+						"holdResources": {
+							"type": "boolean"
+						},
+						"lfDayConstraint": {
+							"type": "string"
+						},
+						"lfDuration": {
+							"type": "string"
+						},
+						"lfEnabled": {
+							"type": "boolean"
+						},
+						"lfNthAmount": {
+							"type": "integer"
+						},
+						"lfTime": {
+							"type": "string"
+						},
+						"lfType": {
+							"type": "string"
+						},
+						"lsDayConstraint": {
+							"type": "string"
+						},
+						"lsDuration": {
+							"type": "string"
+						},
+						"lsEnabled": {
+							"type": "boolean"
+						},
+						"lsNthAmount": {
+							"type": "integer"
+						},
+						"lsTime": {
+							"type": "string"
+						},
+						"lsType": {
+							"type": "string"
+						},
+						"notes": {
+							"type": "array"
+						},
+						"opswiseGroups": {
+							"type": "array"
+						},
+						"resPriority": {
+							"type": "integer"
+						},
+						"resolveNameImmediately": {
+							"type": "boolean"
+						},
+						"restrictionPeriod": {
+							"type": "string"
+						},
+						"restrictionPeriodAfterDate": {
+							"type": "null"
+						},
+						"restrictionPeriodAfterTime": {
+							"type": "null"
+						},
+						"restrictionPeriodBeforeDate": {
+							"type": "null"
+						},
+						"restrictionPeriodBeforeTime": {
+							"type": "null"
+						},
+						"restrictionPeriodDateList": {
+							"type": "array"
+						},
+						"retainSysIds": {
+							"type": "boolean"
+						},
+						"sleepAmount": {
+							"type": "string"
+						},
+						"sleepDayConstraint": {
+							"type": "string"
+						},
+						"sleepDuration": {
+							"type": "string"
+						},
+						"sleepTime": {
+							"type": "string"
+						},
+						"sleepType": {
+							"type": "string"
+						},
+						"startHeld": {
+							"type": "boolean"
+						},
+						"startHeldReason": {
+							"type": "null"
+						},
+						"summary": {
+							"type": "string"
+						},
+						"timeZonePref": {
+							"type": "string"
+						},
+						"userEstimatedDuration": {
+							"type": "null"
+						},
+						"variables": {
+							"type": "array"
+						},
+						"virtualResources": {
+							"type": "array"
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/UacDevopsBlobStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/BLOB_Task_Properties_Tmp')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "UacDevopsBlobStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"folderPath": "TaskProperties",
+						"container": "uacdevops"
+					}
+				},
+				"schema": {
+					"type": "object",
+					"properties": {
+						"description": {
+							"type": "string"
+						},
+						"name": {
+							"type": "string"
+						},
+						"sysId": {
+							"type": "string"
+						},
+						"type": {
+							"type": "string"
+						},
+						"version": {
+							"type": "integer"
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/UacDevopsBlobStorage')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/Json_oli_1')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -215,6 +814,54 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage_oli')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/REST_Get_Task_Definitions')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "UacRestService2",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "RestResource",
+				"typeProperties": {
+					"relativeUrl": "opswise/resources/task/list"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/UacRestService2')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/REST_Get_Task_Properties')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "UacRestService2",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"TaskName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "RestResource",
+				"typeProperties": {
+					"relativeUrl": {
+						"value": "opswise/resources/task?taskname=@{dataset().TaskName}",
+						"type": "Expression"
+					}
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/UacRestService2')]"
 			]
 		},
 		{
@@ -241,26 +888,6 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/UacRestResource2')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "UacRestService2",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "RestResource",
-				"typeProperties": {
-					"relativeUrl": "opswise/resources/task/list"
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/UacRestService2')]"
-			]
-		},
-		{
 			"name": "[concat(parameters('factoryName'), '/uac2_oli')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -276,35 +903,6 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/devopsuac2_oli')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/UAC_TasksDefinitions')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "UacDevopsBlobStorage",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobStorageLocation",
-						"fileName": "TaskDefinitionsLatest",
-						"folderPath": "TasksDefinitions",
-						"container": "uacdevops"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/UacDevopsBlobStorage')]"
 			]
 		},
 		{
@@ -349,7 +947,7 @@
 						},
 						"inputs": [
 							{
-								"referenceName": "UacRestResource2",
+								"referenceName": "REST_Get_Task_Definitions",
 								"type": "DatasetReference",
 								"parameters": {}
 							}
@@ -366,187 +964,8 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/UacRestResource2')]",
+				"[concat(variables('factoryId'), '/datasets/REST_Get_Task_Definitions')]",
 				"[concat(variables('factoryId'), '/datasets/StbTestUacOutputJson')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Copy data1",
-						"type": "Copy",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "RestSource",
-								"httpRequestTimeout": "00:01:40",
-								"requestInterval": "00.00:00:00.010",
-								"requestMethod": "GET"
-							},
-							"sink": {
-								"type": "JsonSink",
-								"storeSettings": {
-									"type": "AzureBlobStorageWriteSettings"
-								},
-								"formatSettings": {
-									"type": "JsonWriteSettings",
-									"quoteAllText": true
-								}
-							},
-							"enableStaging": false
-						},
-						"inputs": [
-							{
-								"referenceName": "uac2_oli",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "Json_oli_1",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					}
-				],
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/uac2_oli')]",
-				"[concat(variables('factoryId'), '/datasets/Json_oli_1')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/UAC_to_GIT_Pipeline')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Copy_Tasks_From_UAC",
-						"type": "Copy",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "RestSource",
-								"httpRequestTimeout": "00:01:40",
-								"requestInterval": "00.00:00:00.010",
-								"requestMethod": "POST",
-								"requestBody": "{\n    \"name\":\"*\"\n}",
-								"additionalHeaders": {
-									"Content-Type": "application/json"
-								}
-							},
-							"sink": {
-								"type": "DelimitedTextSink",
-								"storeSettings": {
-									"type": "AzureBlobStorageWriteSettings"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextWriteSettings",
-									"quoteAllText": true,
-									"fileExtension": ".csv"
-								}
-							},
-							"enableStaging": true,
-							"stagingSettings": {
-								"linkedServiceName": {
-									"referenceName": "UacDevopsBlobStorage",
-									"type": "LinkedServiceReference"
-								},
-								"path": "uacdevops/TasksDefinitions",
-								"enableCompression": true
-							},
-							"translator": {
-								"type": "TabularTranslator",
-								"mappings": [
-									{
-										"source": {
-											"path": "$['description']"
-										},
-										"sink": {
-											"name": "description"
-										}
-									},
-									{
-										"source": {
-											"path": "$['name']"
-										},
-										"sink": {
-											"name": "name"
-										}
-									},
-									{
-										"source": {
-											"path": "$['sysId']"
-										},
-										"sink": {
-											"name": "sysId"
-										}
-									},
-									{
-										"source": {
-											"path": "$['type']"
-										},
-										"sink": {
-											"name": "type"
-										}
-									},
-									{
-										"source": {
-											"path": "$['version']"
-										},
-										"sink": {
-											"name": "version"
-										}
-									}
-								]
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "UacRestResource2",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "UAC_TasksDefinitions",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					}
-				],
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/UacRestResource2')]",
-				"[concat(variables('factoryId'), '/datasets/UAC_TasksDefinitions')]",
-				"[concat(variables('factoryId'), '/linkedServices/UacDevopsBlobStorage')]"
 			]
 		}
 	]

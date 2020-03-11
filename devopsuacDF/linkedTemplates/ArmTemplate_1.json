@@ -1,0 +1,711 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "devopsuacDF"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/GIT_to_UAC_Pipeline')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Lookup_Task_Properties_Directory",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "JsonSource",
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": false,
+									"wildcardFileName": "*.json",
+									"enablePartitionDiscovery": false
+								}
+							},
+							"dataset": {
+								"referenceName": "BLOB_Task_Properties_Tmp",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "For_Each_Task_Property_File",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Lookup_Task_Properties_Directory",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Lookup_Task_Properties_Directory').output.value",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "Get_Task_Property_File_Metadata",
+									"type": "GetMetadata",
+									"dependsOn": [
+										{
+											"activity": "Set_Task_name",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"dataset": {
+											"referenceName": "BLOB_Task_Properties",
+											"type": "DatasetReference",
+											"parameters": {
+												"FileName": {
+													"value": "@replace(item().name, ' ', '')",
+													"type": "Expression"
+												}
+											}
+										},
+										"fieldList": [
+											"itemName",
+											"lastModified"
+										],
+										"storeSettings": {
+											"type": "AzureBlobStorageReadSettings",
+											"recursive": true
+										}
+									}
+								},
+								{
+									"name": "If_Not_New_Changes",
+									"type": "IfCondition",
+									"dependsOn": [
+										{
+											"activity": "Get_Task_Property_File_Metadata",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"expression": {
+											"value": "@less(activity('Get_Task_Property_File_Metadata').output.lastModified, getPastTime(3, 'Minute'))",
+											"type": "Expression"
+										},
+										"ifFalseActivities": [
+											{
+												"name": "Set_Request_Body",
+												"type": "SetVariable",
+												"dependsOn": [
+													{
+														"activity": "Get_Task_Properties",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"userProperties": [],
+												"typeProperties": {
+													"variableName": "RequestBody",
+													"value": {
+														"value": "@activity('Get_Task_Properties').output.value",
+														"type": "Expression"
+													}
+												}
+											},
+											{
+												"name": "Get_Task_Properties",
+												"type": "Lookup",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "7.00:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"source": {
+														"type": "JsonSource",
+														"storeSettings": {
+															"type": "AzureBlobStorageReadSettings",
+															"recursive": true
+														}
+													},
+													"dataset": {
+														"referenceName": "BLOB_Task_Properties",
+														"type": "DatasetReference",
+														"parameters": {
+															"FileName": {
+																"value": "@replace(variables('TaskName'), ' ', '')",
+																"type": "Expression"
+															}
+														}
+													},
+													"firstRowOnly": false
+												}
+											},
+											{
+												"name": "Create_New_Task_Version",
+												"type": "WebActivity",
+												"dependsOn": [
+													{
+														"activity": "Check_Task_Existence",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"policy": {
+													"timeout": "7.00:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"url": {
+														"value": "@variables('Url')",
+														"type": "Expression"
+													},
+													"method": "PUT",
+													"headers": {
+														"Content-Type": "application/json"
+													},
+													"body": {
+														"value": "@string(variables('RequestBody')[0])",
+														"type": "Expression"
+													},
+													"linkedServices": [
+														{
+															"referenceName": "UacRestService2",
+															"type": "LinkedServiceReference"
+														}
+													],
+													"datasets": [],
+													"authentication": {
+														"type": "Basic",
+														"username": "ops.admin",
+														"password": {
+															"type": "AzureKeyVaultSecret",
+															"store": {
+																"referenceName": "AzureKeyVault1",
+																"type": "LinkedServiceReference"
+															},
+															"secretName": "devopsuac"
+														}
+													}
+												}
+											},
+											{
+												"name": "Create_New_Task",
+												"type": "WebActivity",
+												"dependsOn": [
+													{
+														"activity": "Check_Task_Existence",
+														"dependencyConditions": [
+															"Failed"
+														]
+													}
+												],
+												"policy": {
+													"timeout": "7.00:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"url": {
+														"value": "@variables('Url')",
+														"type": "Expression"
+													},
+													"method": "POST",
+													"headers": {},
+													"body": {
+														"value": "@string(variables('RequestBody')[0])",
+														"type": "Expression"
+													},
+													"linkedServices": [],
+													"datasets": [],
+													"authentication": {
+														"type": "Basic",
+														"username": "ops.admin",
+														"password": {
+															"type": "AzureKeyVaultSecret",
+															"store": {
+																"referenceName": "AzureKeyVault1",
+																"type": "LinkedServiceReference"
+															},
+															"secretName": "devopsuac"
+														}
+													}
+												}
+											},
+											{
+												"name": "Check_Task_Existence",
+												"type": "WebActivity",
+												"dependsOn": [
+													{
+														"activity": "Set_Request_Body",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"policy": {
+													"timeout": "7.00:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"url": {
+														"value": "@concat(variables('GetURI'),variables('TaskName'))",
+														"type": "Expression"
+													},
+													"method": "GET",
+													"headers": {
+														"Content-Type": "application/json"
+													},
+													"linkedServices": [],
+													"datasets": [],
+													"authentication": {
+														"type": "Basic",
+														"username": "ops.admin",
+														"password": {
+															"type": "AzureKeyVaultSecret",
+															"store": {
+																"referenceName": "AzureKeyVault1",
+																"type": "LinkedServiceReference"
+															},
+															"secretName": "devopsuac"
+														}
+													}
+												}
+											}
+										]
+									}
+								},
+								{
+									"name": "Set_Task_name",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "TaskName",
+										"value": {
+											"value": "@item().name",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"variables": {
+					"TaskName": {
+						"type": "String"
+					},
+					"Url": {
+						"type": "String",
+						"defaultValue": "http://uacdevops2ip.westeurope.cloudapp.azure.com:8080/opswise/resources/task"
+					},
+					"RequestBody": {
+						"type": "Array"
+					},
+					"GetURI": {
+						"type": "String",
+						"defaultValue": "http://uacdevops2ip.westeurope.cloudapp.azure.com:8080/opswise/resources/task?taskname="
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/UAC_to_GIT_Pipeline')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy_Task_Definitions",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "RestSource",
+								"httpRequestTimeout": "00:01:40",
+								"requestInterval": "00.00:00:00.010",
+								"requestMethod": "POST",
+								"requestBody": "{\n    \"name\":\"*\"\n}",
+								"additionalHeaders": {
+									"Content-Type": "application/json"
+								}
+							},
+							"sink": {
+								"type": "JsonSink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings"
+								},
+								"formatSettings": {
+									"type": "JsonWriteSettings",
+									"quoteAllText": true,
+									"filePattern": "arrayOfObjects"
+								}
+							},
+							"enableStaging": true,
+							"stagingSettings": {
+								"linkedServiceName": {
+									"referenceName": "UacDevopsBlobStorage",
+									"type": "LinkedServiceReference"
+								},
+								"path": "uacdevops/TasksDefinitions",
+								"enableCompression": true
+							},
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"path": "$['description']"
+										},
+										"sink": {
+											"name": "description"
+										}
+									},
+									{
+										"source": {
+											"path": "$['name']"
+										},
+										"sink": {
+											"name": "name"
+										}
+									},
+									{
+										"source": {
+											"path": "$['sysId']"
+										},
+										"sink": {
+											"name": "sysId"
+										}
+									},
+									{
+										"source": {
+											"path": "$['type']"
+										},
+										"sink": {
+											"name": "type"
+										}
+									},
+									{
+										"source": {
+											"path": "$['version']"
+										},
+										"sink": {
+											"name": "version"
+										}
+									}
+								]
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "REST_Get_Task_Definitions",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "BLOB_Task_Definitions",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "Tasks_Lookup",
+						"type": "Lookup",
+						"dependsOn": [
+							{
+								"activity": "Copy_Task_Definitions",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "JsonSource",
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true
+								}
+							},
+							"dataset": {
+								"referenceName": "BLOB_Task_Definitions",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "For_Each_Task",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Tasks_Lookup",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Tasks_Lookup').output.value",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Copy_Task_Properties",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "RestSource",
+											"httpRequestTimeout": "00:01:40",
+											"requestInterval": "00.00:00:00.010",
+											"requestMethod": "GET"
+										},
+										"sink": {
+											"type": "JsonSink",
+											"storeSettings": {
+												"type": "AzureBlobStorageWriteSettings"
+											},
+											"formatSettings": {
+												"type": "JsonWriteSettings",
+												"quoteAllText": true
+											}
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "REST_Get_Task_Properties",
+											"type": "DatasetReference",
+											"parameters": {
+												"TaskName": "@item().name"
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "BLOB_Task_Properties",
+											"type": "DatasetReference",
+											"parameters": {
+												"FileName": {
+													"value": "@replace(item().name, ' ', '')",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						}
+					},
+					{
+						"name": "Merge_Task_Properties_Files",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "For_Each_Task",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "JsonSource",
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": false,
+									"wildcardFileName": "*.json",
+									"enablePartitionDiscovery": false
+								}
+							},
+							"sink": {
+								"type": "JsonSink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings",
+									"copyBehavior": "MergeFiles"
+								},
+								"formatSettings": {
+									"type": "JsonWriteSettings",
+									"quoteAllText": true,
+									"filePattern": "arrayOfObjects"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "BLOB_Task_Properties_Tmp",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "BLOB_Task_Properties_Merged",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": "TaskProperties.json"
+								}
+							}
+						]
+					}
+				],
+				"variables": {
+					"TaskDefinitions": {
+						"type": "String"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "RestSource",
+								"httpRequestTimeout": "00:01:40",
+								"requestInterval": "00.00:00:00.010",
+								"requestMethod": "GET"
+							},
+							"sink": {
+								"type": "JsonSink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings"
+								},
+								"formatSettings": {
+									"type": "JsonWriteSettings",
+									"quoteAllText": true
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "uac2_oli",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "Json_oli_1",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": []
+		}
+	]
+}
